@@ -80,7 +80,7 @@ def transcribe_audio(audio_file_path):
     print(transcription_text)
     if "activate free walk mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating free walk mode",)).start()
-        subprocess.run(["python", "Detection.py"])
+        subprocess.run(["python", "test 2.py"])
     elif "activate reading mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating reading mode",)).start()
         subprocess.run(["python", "Camera.py"])

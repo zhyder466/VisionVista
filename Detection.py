@@ -13,13 +13,13 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 speech_file_path = "speech.mp3"
 
-url = 'http://172.20.10.9:8080/video'
+url = 'http://172.20.10.4:8080/video'
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
 
-model = YOLO("yolov8s.pt")
+model = YOLO("yolov8n.pt")
 
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
               "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
