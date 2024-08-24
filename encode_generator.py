@@ -3,7 +3,7 @@ import face_recognition
 import pickle
 import os
 
-folderPath = '/Users/hyder/Downloads/Face_Recognition/images/'
+folderPath = '/Users/hyder/Downloads/VisionVista/images/'
 PathList = os.listdir(folderPath)
 imgList = []
 studentIds = []
