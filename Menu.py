@@ -58,7 +58,6 @@ def record_audio(file_name, silence_threshold=3000, silence_duration=1, sample_r
 
     file_path = f"/Users/hyder/Downloads/VisionVista/Res/{file_name}"
 
-
     with wave.open(file_path, 'wb') as wf:
         wf.setnchannels(channels)
         wf.setsampwidth(audio.get_sample_size(format))
@@ -67,8 +66,6 @@ def record_audio(file_name, silence_threshold=3000, silence_duration=1, sample_r
 
     print("Audio saved to:", file_path)
     return file_path
-
-import time
 
 def transcribe_audio(audio_file_path):
     with open(audio_file_path, "rb") as audio_file:
@@ -79,12 +76,16 @@ def transcribe_audio(audio_file_path):
     
     transcription_text = transcription.text
     print(transcription_text)
+    
     if "activate free walk mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating free walk mode",)).start()
         subprocess.run(["python", "ObjectAndFaceWithDistance.py"])
     elif "activate reading mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating reading mode",)).start()
         subprocess.run(["python", "Camera.py"])
+    elif "activate scene description mode" in transcription_text.lower():  # New mode: Scene mode
+        threading.Thread(target=readText, args=("Activating scene description mode",)).start()
+        subprocess.run(["python", "scene.py"])
     elif "exit" in transcription_text.lower():
         print("Exiting program.")
         threading.Thread(target=readText, args=("Exiting the program",)).start()
