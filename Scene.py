@@ -15,7 +15,7 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
-def get_openai_response(image_path, user_query="Extract text from this image"):
+def get_openai_response(image_path, user_query="What's in this image?"):
     base64_image = encode_image(image_path)
 
     headers = {
@@ -31,12 +31,11 @@ def get_openai_response(image_path, user_query="Extract text from this image"):
     payload = {
         "model": "gpt-4o-mini",
         "messages": [{"role": "user", "content": content}],
-        "max_tokens": 300
+        "max_tokens": 500
     }
 
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
     return response.json()
-
 
 def text_to_speech(text):
     speech_file_path = '/Users/hyder/Downloads/VisionVista/Res/response_text.mp3'
@@ -111,7 +110,7 @@ def capture_image_from_camera():
         elif user_command == "exit":
             cap.release()
             cv2.destroyAllWindows()
-            text_to_speech("Ok, exiting the reading mode.")
+            text_to_speech("Ok, exiting the scenario description mode.")
             sys.exit()
 
         else:
@@ -120,7 +119,7 @@ def capture_image_from_camera():
     return False
 
 def process_image_and_interaction(image_path):
-    text_to_speech("Image successfully captured, now extracting text from the image.")
+    text_to_speech("Image successfully captured, now providing a description of the image.")
 
     response = get_openai_response(image_path)
 
@@ -130,23 +129,28 @@ def process_image_and_interaction(image_path):
 
         text_to_speech(content)
 
-        text_to_speech("Do you want to capture another image? Please say yes or no.")
+        text_to_speech("You can ask more questions about the image, please say your question or say 'exit' to quit.")
 
         while True:
-            user_response = listen_for_query()
+            user_query = listen_for_query()
 
-            if user_response == "yes":
-                capture_image_from_camera()
-                break
-            elif user_response == "no":
-                text_to_speech("Ok, exiting the reading mode.")
+            if user_query == "exit":
+                text_to_speech("Ok, exiting the scenario description mode.")
                 sys.exit()
+
+            if user_query:
+                response = get_openai_response(image_path, user_query)
+                if 'choices' in response:
+                    further_content = response['choices'][0]['message']['content']
+                    print(f"Further Content: {further_content}")
+                    text_to_speech(further_content)
+                else:
+                    text_to_speech("Sorry, I couldn't find an answer to that. Please ask again.")
             else:
-                text_to_speech("Sorry, I didn't understand that. Please say yes or no.")
+                text_to_speech("Sorry, I didn't understand your question.")
 
 if __name__ == "__main__":
 
     while True:
         if not capture_image_from_camera():
             break
-

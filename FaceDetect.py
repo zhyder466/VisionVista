@@ -31,8 +31,8 @@ def generate_speech(class_name):
         voice="onyx",
         input=f"I can see {class_name}."
     )
-    response.stream_to_file('sound.mp3')
-    playsound.playsound('sound.mp3')
+    response.stream_to_file('/Users/hyder/Downloads/VisionVista/Res/sound.mp3')
+    playsound.playsound('/Users/hyder/Downloads/VisionVista/Res/sound.mp3')
 
 while True:
     success, img = cap.read()

@@ -11,11 +11,11 @@ import warnings
 client = OpenAI(api_key='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')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-speech_file_path = "speech.mp3"
+speech_file_path = "/Users/hyder/Downloads/VisionVista/Res/speech.mp3"
 
-url = 'http://172.20.10.4:8080/video'
+url = 'http://172.20.10.5:8080/video'
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(url)
 cap.set(3, 640)
 cap.set(4, 480)
 

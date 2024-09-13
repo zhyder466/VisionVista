@@ -12,7 +12,7 @@ client = OpenAI(api_key='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')
 warnings.filterwarnings("ignore")
 
 def readText(text):
-    speech_file_path = 'extracted_text.mp3'
+    speech_file_path = '/Users/hyder/Downloads/VisionVista/Res/extracted_text.mp3'
     response = client.audio.speech.create(
         model="tts-1",
         voice="onyx",
@@ -56,7 +56,8 @@ def record_audio(file_name, silence_threshold=3000, silence_duration=1, sample_r
     stream.close()
     audio.terminate()
 
-    file_path = file_name
+    file_path = f"/Users/hyder/Downloads/VisionVista/Res/{file_name}"
+
 
     with wave.open(file_path, 'wb') as wf:
         wf.setnchannels(channels)
@@ -80,7 +81,7 @@ def transcribe_audio(audio_file_path):
     print(transcription_text)
     if "activate free walk mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating free walk mode",)).start()
-        subprocess.run(["python", "test 2.py"])
+        subprocess.run(["python", "ObjectAndFaceWithDistance.py"])
     elif "activate reading mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating reading mode",)).start()
         subprocess.run(["python", "Camera.py"])

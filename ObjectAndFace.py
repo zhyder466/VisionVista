@@ -41,7 +41,7 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
 last_spoken_time = {}
 cooldown_period = 5
 confidence_threshold = 0.5
-
+speech_path = "/Users/hyder/Downloads/VisionVista/Res/sound.mp3"
 def generate_speech(message):
     try:
         response = client.audio.speech.create(
@@ -49,8 +49,8 @@ def generate_speech(message):
             voice="onyx",
             input=message
         )
-        response.stream_to_file('sound.mp3')
-        playsound.playsound('sound.mp3')
+        response.stream_to_file(speech_path)
+        playsound.playsound(speech_path)
     except Exception as e:
         print(f"Error generating speech: {e}")
 

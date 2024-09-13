@@ -12,11 +12,10 @@ from ultralytics import YOLO
 
 client = OpenAI(api_key='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')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
+url = 'http://172.20.10.5:8080/video'
 cap = cv2.VideoCapture(0) 
 cap.set(3, 1280)
 cap.set(4, 720)
-
 file = open('EncodeFile.p', 'rb')
 encodeListKnownWithIds = pickle.load(file)
 file.close()
@@ -56,8 +55,8 @@ def generate_speech(message):
             voice="onyx",
             input=message
         )
-        response.stream_to_file('sound.mp3')
-        playsound.playsound('sound.mp3')
+        response.stream_to_file('/Users/hyder/Downloads/VisionVista/Res/sound.mp3')
+        playsound.playsound('/Users/hyder/Downloads/VisionVista/Res/sound.mp3')
     except Exception as e:
         print(f"Error generating speech: {e}")
 
