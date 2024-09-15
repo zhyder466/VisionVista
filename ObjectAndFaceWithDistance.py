@@ -9,6 +9,7 @@ import math
 import playsound
 from openai import OpenAI
 from ultralytics import YOLO
+import os
 
 client = OpenAI(api_key='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')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -137,7 +138,7 @@ while True:
     cv2.imshow("Face & Object Detection", img)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        os._exit()
 
 cap.release()
 cv2.destroyAllWindows()
