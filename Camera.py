@@ -8,18 +8,15 @@ import os
 import pyaudio
 import wave
 
-# Set your OpenAI API key directly here
 api_key = "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"
 
-# Audio recording parameters
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
 RECORD_SECONDS = 5
-WAVE_OUTPUT_FILENAME = "command.wav"
+WAVE_OUTPUT_FILENAME = "/Users/hyder/Downloads/VisionVista/Res/command1.wav"
 
-# Pause listening event to control when voice listener is active
 pause_listening_event = threading.Event()
 
 def capture_image_from_camera(command_event):
@@ -37,12 +34,10 @@ def capture_image_from_camera(command_event):
 
         cv2.imshow('Camera', frame)
 
-        # Check if the capture command has been received
         if command_event.is_set():
-            # Pause voice listening while capturing and processing the image
             pause_listening_event.clear()
 
-            image_path = "/Users/hyder/Downloads/VisionVista/Res/captured_image.jpg"
+            image_path = "/Users/hyder/Downloads/VisionVista/Res/captured_image1.jpg"
             cv2.imwrite(image_path, frame)
             print(f"Image saved as '{image_path}'")
 
@@ -50,13 +45,10 @@ def capture_image_from_camera(command_event):
             process_image_and_read(image_path)
             ask_for_another_image()
 
-            # Clear the command event to allow new commands
             command_event.clear()
 
-            # Resume voice listening after processing the image
             pause_listening_event.set()
 
-        # Exit if 'q' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -82,7 +74,6 @@ def record_audio():
     stream.close()
     audio.terminate()
 
-    # Save the recorded audio as a .wav file
     wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
     wf.setnchannels(CHANNELS)
     wf.setsampwidth(audio.get_sample_size(FORMAT))
@@ -112,7 +103,6 @@ def transcribe_audio(audio_file):
 
 def listen_for_command(command_event):
     while True:
-        # Only listen for voice commands when not paused
         pause_listening_event.wait()
 
         audio_file = record_audio()
@@ -122,14 +112,14 @@ def listen_for_command(command_event):
             print(f"User said: {user_command}")
 
             if "capture" in user_command.lower():
-                command_event.set()  # Trigger image capture
+                command_event.set()
 
             elif "exit" in user_command.lower():
                 text_to_speech("Ok, exiting the reading mode.")
                 os._exit(0)
 
             elif "yes" in user_command.lower():
-                command_event.set()  # Re-trigger image capture
+                command_event.set()
 
             elif "no" in user_command.lower():
                 text_to_speech("Ok, exiting the reading mode.")
@@ -182,7 +172,7 @@ def get_openai_response(image_path, user_query="Extract text from this image"):
     return None
 
 def text_to_speech(text):
-    speech_file_path = 'response_text.mp3'
+    speech_file_path = '/Users/hyder/Downloads/VisionVista/Res/response_text1.mp3'
 
     tts_payload = {
         "model": "tts-1",
@@ -212,12 +202,9 @@ if __name__ == "__main__":
 
     command_event = threading.Event()
 
-    # Start voice listening in a separate thread
     voice_thread = threading.Thread(target=listen_for_command, args=(command_event,))
     voice_thread.start()
 
-    # Allow voice listening from the start
     pause_listening_event.set()
 
-    # Capture images in the main thread to avoid OpenCV thread errors
     capture_image_from_camera(command_event)

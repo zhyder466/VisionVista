@@ -8,23 +8,19 @@ import os
 import pyaudio
 import wave
 
-# Set your OpenAI API key directly here
 api_key = "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"
 
-# Audio recording parameters
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
 RECORD_SECONDS = 5
-WAVE_OUTPUT_FILENAME = "command.wav"
+WAVE_OUTPUT_FILENAME = "/Users/hyder/Downloads/VisionVista/Res/command2.wav"
 
-# Pause listening event to control when voice listener is active
 pause_listening_event = threading.Event()
 
-# Global variable to manage modes
-mode = "initial"  # Modes: 'initial', 'interactive'
-current_image_path = None  # Store the path to the last captured image
+mode = "initial"  
+current_image_path = None 
 
 def capture_image_from_camera(command_event):
     global mode, current_image_path
@@ -42,31 +38,24 @@ def capture_image_from_camera(command_event):
 
         cv2.imshow('Camera', frame)
 
-        # Check if the capture command has been received
         if command_event.is_set() and mode == "initial":
-            # Pause voice listening while capturing and processing the image
             pause_listening_event.clear()
 
-            current_image_path = "/Users/hyder/Downloads/VisionVista/Res/captured_image.jpg"
+            current_image_path = "/Users/hyder/Downloads/VisionVista/Res/captured_image2.jpg"
             cv2.imwrite(current_image_path, frame)
             print(f"Image saved as '{current_image_path}'")
 
             text_to_speech("Image successfully captured. Let me explain what's in this image.")
             process_image_and_read(current_image_path)
 
-            # Switch mode to interactive after explaining the image
             mode = "interactive"
 
-            # Ask if the user has any further questions
             ask_for_further_questions()
 
-            # Clear the command event to allow new commands
             command_event.clear()
 
-            # Resume voice listening after processing the image
             pause_listening_event.set()
 
-        # Exit if 'q' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -92,7 +81,6 @@ def record_audio():
     stream.close()
     audio.terminate()
 
-    # Save the recorded audio as a .wav file
     wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
     wf.setnchannels(CHANNELS)
     wf.setsampwidth(audio.get_sample_size(FORMAT))
@@ -123,7 +111,6 @@ def transcribe_audio(audio_file):
 def listen_for_command(command_event):
     global mode
     while True:
-        # Only listen for voice commands when not paused
         pause_listening_event.wait()
 
         audio_file = record_audio()
@@ -133,25 +120,21 @@ def listen_for_command(command_event):
             print(f"User said: {user_command}")
 
             if mode == "initial":
-                # In initial mode, only respond to "capture" and "exit"
                 if "capture" in user_command.lower():
-                    command_event.set()  # Trigger image capture
+                    command_event.set()  
 
                 elif "exit" in user_command.lower():
                     text_to_speech("Ok, exiting the program.")
                     os._exit(0)
 
                 else:
-                    # If user says anything else during initial mode
                     text_to_speech("I don't understand. Please say 'capture' to take a picture or 'exit' to leave.")
 
             elif mode == "interactive":
-                # In interactive mode, any query will be processed
                 if "exit" in user_command.lower():
                     text_to_speech("Ok, exiting the program.")
                     os._exit(0)
                 else:
-                    # Process the user's question about the image
                     process_user_query(user_command)
 
 def process_image_and_read(image_path):
@@ -174,7 +157,7 @@ def process_user_query(user_query):
     global current_image_path
     if current_image_path:
         print(f"User Query: {user_query}")
-        response = get_openai_response(current_image_path, user_query)  # Send user query and image to OpenAI
+        response = get_openai_response(current_image_path, user_query) 
 
         if response:
             print(f"Response: {response}")
@@ -201,7 +184,6 @@ def get_openai_response(image_path, user_query):
         "Authorization": f"Bearer {api_key}"
     }
 
-    # Create the proper payload
     if base64_image:
         content = [
             {"type": "text", "text": user_query},
@@ -225,7 +207,7 @@ def get_openai_response(image_path, user_query):
     return None
 
 def text_to_speech(text):
-    speech_file_path = 'response_text.mp3'
+    speech_file_path = '/Users/hyder/Downloads/VisionVista/Res/response_text2.mp3'
 
     tts_payload = {
         "model": "tts-1",
@@ -255,12 +237,9 @@ if __name__ == "__main__":
 
     command_event = threading.Event()
 
-    # Start voice listening in a separate thread
     voice_thread = threading.Thread(target=listen_for_command, args=(command_event,))
     voice_thread.start()
 
-    # Allow voice listening from the start
     pause_listening_event.set()
-
-    # Capture images in the main thread to avoid OpenCV thread errors
+    
     capture_image_from_camera(command_event)
