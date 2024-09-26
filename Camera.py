@@ -5,22 +5,26 @@ import requests
 import base64
 import playsound
 import os
-import pyaudio
+import sounddevice as sd
+import numpy as np
 import wave
 
-api_key = "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"
+api_key = "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"
+url = 'http://172.20.10.3:8080/video'
+url2 = 'http://10.102.128.138:8080/video'
 
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 16000
-RECORD_SECONDS = 5
+
+CHUNK = 1024  # Buffer size
+FORMAT = 'int16'  # Audio format
+CHANNELS = 1  # Mono input
+RATE = 44000  # Sample rate (16kHz is optimal for voice recognition)
+RECORD_SECONDS = 5  # Duration of audio capture for each request
 WAVE_OUTPUT_FILENAME = "/Users/hyder/Downloads/VisionVista/Res/command1.wav"
 
 pause_listening_event = threading.Event()
 
 def capture_image_from_camera(command_event):
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(url)
 
     if not cap.isOpened():
         print("Error: Unable to open the camera.")
@@ -56,34 +60,30 @@ def capture_image_from_camera(command_event):
     cv2.destroyAllWindows()
 
 def record_audio():
-    audio = pyaudio.PyAudio()
+    """
+    Record audio from the microphone using sounddevice for the specified duration and save it as a .wav file.
+    """
+    try:
+        print("Recording...")
+        audio_data = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype=FORMAT)
+        sd.wait()  # Wait until the recording is finished
 
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
+        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(2)  # 16-bit format (int16)
+        wf.setframerate(RATE)
+        wf.writeframes(audio_data.tobytes())
+        wf.close()
 
-    frames = []
-
-    print("Listening for voice command...")
-
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
-        frames.append(data)
-
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(audio.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
-
-    return WAVE_OUTPUT_FILENAME
+        return WAVE_OUTPUT_FILENAME
+    except Exception as e:
+        print(f"Error recording audio: {e}")
+        return None
 
 def transcribe_audio(audio_file):
+    """
+    Send the recorded audio file to OpenAI's Whisper API for transcription.
+    """
     url = "https://api.openai.com/v1/audio/transcriptions"
     headers = {
         "Authorization": f"Bearer {api_key}"
@@ -93,12 +93,13 @@ def transcribe_audio(audio_file):
         'model': (None, 'whisper-1'),
     }
 
-    response = requests.post(url, headers=headers, files=files)
+    try:
+        response = requests.post(url, headers=headers, files=files)
+        response.raise_for_status()  # Raises an exception for bad responses (4xx, 5xx)
 
-    if response.status_code == 200:
-        return response.json()['text']
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
+        return response.json().get('text', '')
+    except requests.exceptions.RequestException as e:
+        print(f"Error during transcription: {e}")
         return None
 
 def listen_for_command(command_event):
@@ -106,24 +107,28 @@ def listen_for_command(command_event):
         pause_listening_event.wait()
 
         audio_file = record_audio()
-        user_command = transcribe_audio(audio_file)
+        if audio_file:
+            print("Transcribing audio...")
+            user_command = transcribe_audio(audio_file)
 
-        if user_command:
-            print(f"User said: {user_command}")
+            if user_command:
+                print(f"User said: {user_command}")
 
-            if "capture" in user_command.lower():
-                command_event.set()
+                if "capture" in user_command.lower():
+                    command_event.set()
 
-            elif "exit" in user_command.lower():
-                text_to_speech("Ok, exiting the reading mode.")
-                os._exit(0)
+                elif "exit" in user_command.lower():
+                    text_to_speech("Ok, exiting the reading mode.")
+                    os._exit(0)
 
-            elif "yes" in user_command.lower():
-                command_event.set()
+                elif "yes" in user_command.lower():
+                    command_event.set()
 
-            elif "no" in user_command.lower():
-                text_to_speech("Ok, exiting the reading mode.")
-                os._exit(0)
+                elif "no" in user_command.lower():
+                    text_to_speech("Ok, exiting the reading mode.")
+                    os._exit(0)
+        else:
+            print("Audio recording failed.")
 
 def process_image_and_read(image_path):
     print(f"Processing the image: {image_path}")

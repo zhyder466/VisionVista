@@ -5,22 +5,25 @@ import requests
 import base64
 import playsound
 import os
-import pyaudio
+import sounddevice as sd
+import numpy as np
 import wave
 
-api_key = "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"
+api_key = "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"
 
 CHUNK = 1024
-FORMAT = pyaudio.paInt16
+FORMAT = np.int16 
 CHANNELS = 1
 RATE = 16000
 RECORD_SECONDS = 5
 WAVE_OUTPUT_FILENAME = "/Users/hyder/Downloads/VisionVista/Res/command2.wav"
 
 pause_listening_event = threading.Event()
+url = 'http://172.20.10.3:8080/video'
+url2 = 'http://10.102.128.138:8080/video'
 
-mode = "initial"  
-current_image_path = None 
+mode = "initial"
+current_image_path = None
 
 def capture_image_from_camera(command_event):
     global mode, current_image_path
@@ -63,30 +66,21 @@ def capture_image_from_camera(command_event):
     cv2.destroyAllWindows()
 
 def record_audio():
-    audio = pyaudio.PyAudio()
-
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
-
-    frames = []
-
     print("Listening for voice command...")
+    
+    # Record the audio using sounddevice
+    recording = sd.rec(int(RECORD_SECONDS * RATE), samplerate=RATE, channels=CHANNELS, dtype=FORMAT)
+    sd.wait()  # Wait until recording is finished
 
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
-        frames.append(data)
+    # Convert the recorded data to bytes
+    frames = recording.astype(np.int16).tobytes()
 
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(audio.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+    # Save to a WAV file
+    with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(2)  # 2 bytes for FORMAT int16
+        wf.setframerate(RATE)
+        wf.writeframes(frames)
 
     return WAVE_OUTPUT_FILENAME
 
@@ -121,10 +115,10 @@ def listen_for_command(command_event):
 
             if mode == "initial":
                 if "capture" in user_command.lower():
-                    command_event.set()  
+                    command_event.set()
 
                 elif "exit" in user_command.lower():
-                    text_to_speech("Ok, exiting the program.")
+                    text_to_speech("Ok, exiting the scenario description mode.")
                     os._exit(0)
 
                 else:
@@ -132,7 +126,7 @@ def listen_for_command(command_event):
 
             elif mode == "interactive":
                 if "exit" in user_command.lower():
-                    text_to_speech("Ok, exiting the program.")
+                    text_to_speech("Ok, exiting the scenario description mode.")
                     os._exit(0)
                 else:
                     process_user_query(user_command)
@@ -157,7 +151,7 @@ def process_user_query(user_query):
     global current_image_path
     if current_image_path:
         print(f"User Query: {user_query}")
-        response = get_openai_response(current_image_path, user_query) 
+        response = get_openai_response(current_image_path, user_query)
 
         if response:
             print(f"Response: {response}")
@@ -241,5 +235,5 @@ if __name__ == "__main__":
     voice_thread.start()
 
     pause_listening_event.set()
-    
+
     capture_image_from_camera(command_event)
