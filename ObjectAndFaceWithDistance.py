@@ -19,7 +19,7 @@ client = OpenAI(api_key='sk-proj-_OOu9j1O6Db7wNRKCWOx-l6k8WZykdlhBPqSyHzKE5WjmnK
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Video stream URL
-url = 'http://172.20.10.3:8080/video'
+url = 'http://172.20.10.2:8080/video'
 url2 = 'http://10.102.128.138:8080/video'
 
 

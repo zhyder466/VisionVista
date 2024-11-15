@@ -19,7 +19,7 @@ RECORD_SECONDS = 5
 WAVE_OUTPUT_FILENAME = "/Users/hyder/Downloads/VisionVista/Res/command2.wav"
 
 pause_listening_event = threading.Event()
-url = 'http://172.20.10.3:8080/video'
+url = 'http://172.20.10.2:8080/video'
 url2 = 'http://10.102.128.138:8080/video'
 
 mode = "initial"
@@ -27,7 +27,7 @@ current_image_path = None
 
 def capture_image_from_camera(command_event):
     global mode, current_image_path
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(url)
 
     if not cap.isOpened():
         print("Error: Unable to open the camera.")

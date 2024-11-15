@@ -10,7 +10,7 @@ import numpy as np
 import wave
 
 api_key = "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"
-url = 'http://172.20.10.3:8080/video'
+url = 'http://172.20.10.2:8080/video'
 url2 = 'http://10.102.128.138:8080/video'
 
 
@@ -39,7 +39,7 @@ def capture_image_from_camera(command_event):
         cv2.imshow('Camera', frame)
 
         if command_event.is_set():
-            pause_listening_event.clear()
+            pause_listening_event.clear()  # Clear the pause to start capturing
 
             image_path = "/Users/hyder/Downloads/VisionVista/Res/captured_image1.jpg"
             cv2.imwrite(image_path, frame)
@@ -47,11 +47,11 @@ def capture_image_from_camera(command_event):
 
             text_to_speech("Image successfully captured. Extracting text from image.")
             process_image_and_read(image_path)
-            ask_for_another_image()
 
-            command_event.clear()
+            ask_for_another_image()  # Ask if the user wants another image
 
-            pause_listening_event.set()
+            command_event.clear()  # Clear the event so we stop image capture
+            pause_listening_event.set()  # Resume listening for commands
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -104,7 +104,7 @@ def transcribe_audio(audio_file):
 
 def listen_for_command(command_event):
     while True:
-        pause_listening_event.wait()
+        pause_listening_event.wait()  # This ensures the listening is paused until needed
 
         audio_file = record_audio()
         if audio_file:
@@ -115,14 +115,14 @@ def listen_for_command(command_event):
                 print(f"User said: {user_command}")
 
                 if "capture" in user_command.lower():
-                    command_event.set()
+                    command_event.set()  # Set the event to trigger image capture
 
                 elif "exit" in user_command.lower():
                     text_to_speech("Ok, exiting the reading mode.")
                     os._exit(0)
 
                 elif "yes" in user_command.lower():
-                    command_event.set()
+                    command_event.set()  # Set the event again to capture another image
 
                 elif "no" in user_command.lower():
                     text_to_speech("Ok, exiting the reading mode.")

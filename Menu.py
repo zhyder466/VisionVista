@@ -74,8 +74,8 @@ def transcribe_audio(audio_file):
         return None
 
 def process_transcription(transcription_text):
-    if "activate free walk mode" in transcription_text.lower():
-        threading.Thread(target=readText, args=("Activating free walk mode",)).start()
+    if "activate detection mode" in transcription_text.lower():
+        threading.Thread(target=readText, args=("Activating detection mode",)).start()
         subprocess.run(["python", "ObjectAndFaceWithDistance.py"])
     elif "activate reading mode" in transcription_text.lower():
         threading.Thread(target=readText, args=("Activating reading mode",)).start()
